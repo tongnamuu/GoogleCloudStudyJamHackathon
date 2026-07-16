@@ -372,8 +372,9 @@ def approve_script(req: ApproveScriptRequest):
             task["logs"].append("Storyboard Agent: 각 컷별 AI 기획 이미지 전제 드로잉 중 (대시보드 스토리보드 탭 시각화)...")
             task["progress"] = 88
             
-            # Map each shot to its sound and narration to render overlay
-            sound_map = {s.shot_id: s for s in sound.sounds}
+            # Map each shot to its parent scene's narration and director's mood to render overlay
+            scenes_map = {sc.scene_no: sc for sc in scenes.scenes}
+            director_map = {ds.scene_no: ds for ds in director.scenes}
             total_shots = len(cinematography.shots)
             
             for idx, shot in enumerate(cinematography.shots):
@@ -381,7 +382,11 @@ def approve_script(req: ApproveScriptRequest):
                 img_filename = f"{shot_id}_storyboard.png"
                 img_path = os.path.join(paths["storyboards"], img_filename)
                 
-                narration_text = sound_map[shot_id].narration if shot_id in sound_map else ""
+                scene_obj = scenes_map.get(shot.scene_no)
+                narration_text = scene_obj.narration if scene_obj else ""
+                
+                director_obj = director_map.get(shot.scene_no)
+                mood_text = director_obj.mood if director_obj else "suspense"
                 
                 task["logs"].append(f"Storyboard Agent: 컷 '{shot_id}' 연출 드로잉 진행 중 ({idx + 1}/{total_shots})...")
                 task["progress"] = int(88 + (idx / total_shots) * 11)
@@ -393,7 +398,7 @@ def approve_script(req: ApproveScriptRequest):
                     angle=shot.camera_angle,
                     composition=shot.composition,
                     narration=narration_text,
-                    mood=sound.mood,
+                    mood=mood_text,
                     visual_prompt=shot.visual_prompt or ""
                 )
                 
