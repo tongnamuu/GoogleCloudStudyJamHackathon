@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Director & Production Studio</title>
+    <!-- Google Fonts for cinematic layout -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&family=Courier+Prime&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+    <div class="studio-container">
+        <!-- 1. HEADER CONTROL BAR -->
+        <header class="studio-header">
+            <div class="brand">
+                <i data-lucide="clapperboard" class="neon-glow-icon"></i>
+                <div class="brand-text">
+                    <h1>AI DIRECTOR</h1>
+                    <span>Production Studio v1.0</span>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div class="project-selector-wrapper">
+                    <i data-lucide="folder-kanban" class="input-icon"></i>
+                    <select id="project-list-select" class="studio-select">
+                        <option value="">-- 불러올 시네마 프로젝트 선택 --</option>
+                    </select>
+                </div>
+                
+                <button id="btn-delete-project" class="studio-btn-icon btn-danger" title="선택된 프로젝트 삭제" disabled>
+                    <i data-lucide="trash-2"></i>
+                </button>
+
+                <button id="btn-refresh" class="studio-btn-icon" title="새로고침">
+                    <i data-lucide="rotate-cw"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. MAIN GRID LAYOUT -->
+        <div class="studio-main-grid">
+            
+            <!-- LEFT PANEL: PROJECT CONTROLLER & LIVE LOGS -->
+            <aside class="control-panel">
+                <div class="panel-section">
+                    <h3 class="section-title"><i data-lucide="pen-tool"></i> 1. 시나리오 개요 입력</h3>
+                    
+                    <div class="form-group">
+                        <label for="project-title-input">프로젝트 제목 (Cinema Title)</label>
+                        <input type="text" id="project-title-input" placeholder="시네마 프로젝트 제목을 기획하세요... (예: '무지개 마을 살인사건')" class="studio-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="synopsis-input">시놉시스 (Synopsis)</label>
+                        <textarea id="synopsis-input" placeholder="한 줄의 강력한 시놉시스를 입력하세요... &#10;예: '빗속에서 기억을 잃은 특수 요원이 손에 쥔 의문의 피 묻은 편지 봉투의 진실을 파헤치는 느와르 복수극.'" class="studio-textarea"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genre-select">장르 프리셋 (Genre)</label>
+                        <select id="genre-select" class="studio-select">
+                            {% for g in genres %}
+                            <option value="{{ g.id }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 12px; margin-top: 12px;">
+                        <label style="font-weight: 600; color: var(--color-accent); font-size: 0.82rem; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                            <i data-lucide="video" style="width: 13px; height: 13px;"></i> 에피소드 편수 및 재생시간 설정
+                        </label>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+                            <label style="font-size: 0.72rem; color: #a1a1aa; width: 65px;">제작 편수</label>
+                            <select id="create-episodes-count" class="studio-select" style="flex: 1; height: 32px; font-size: 0.75rem; padding: 4px 8px; background: #09090b; border-color: rgba(255,255,255,0.08);">
+                                <option value="2" selected>2부작 극장판 (2 Episodes)</option>
+                                <option value="1">단편 특별판 (1 Episode)</option>
+                                <option value="3">3부작 미니시리즈 (3 Episodes)</option>
+                                <option value="5">5부작 시즌제 (5 Episodes)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Dynamic Episode Times Inputs Container -->
+                        <div id="create-episode-times-inputs" style="display: flex; flex-direction: column; gap: 6px;">
+                            <!-- Will be updated dynamically. Defaulting to 2 episodes inputs for instant load -->
+                            <div style="display: flex; gap: 8px; align-items: center;" class="duration-input-row" data-ep="1">
+                                <label style="font-size: 0.72rem; color: #a1a1aa; width: 65px;">1화 목표초</label>
+                                <input type="number" class="studio-input ep-time-input" data-ep="1" value="30" min="10" max="300" style="flex: 1; height: 30px; font-size: 0.75rem; padding: 4px 8px; background: #09090b; border-color: rgba(255,255,255,0.08);">
+                                <span style="font-size: 0.72rem; color: #71717a; width: 15px;">초</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;" class="duration-input-row" data-ep="2">
+                                <label style="font-size: 0.72rem; color: #a1a1aa; width: 65px;">2화 목표초</label>
+                                <input type="number" class="studio-input ep-time-input" data-ep="2" value="45" min="10" max="300" style="flex: 1; height: 30px; font-size: 0.75rem; padding: 4px 8px; background: #09090b; border-color: rgba(255,255,255,0.08);">
+                                <span style="font-size: 0.72rem; color: #71717a; width: 15px;">초</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-create-project" class="studio-btn btn-primary w-100">
+                        <i data-lucide="plus-circle"></i> 새 프로젝트 생성 및 기획
+                    </button>
+                </div>
+
+                <div class="panel-section episode-build-section disabled" id="episode-control-block">
+                    <h3 class="section-title"><i data-lucide="clapperboard"></i> 2. 프로덕션 지휘소</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label for="episode-select">현재 에피소드</label>
+                            <select id="episode-select" class="studio-select">
+                                <option value="1">제 1 화 (Episode 1)</option>
+                                <option value="2">제 2 화 (Episode 2)</option>
+                                <option value="3">제 3 화 (Episode 3)</option>
+                                <option value="4">제 4 화 (Episode 4)</option>
+                                <option value="5">제 5 화 (Episode 5)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVE GATE CONTROLLER CARD -->
+                    <div class="gate-desk-card" id="gate-desk-card">
+                        <div class="gate-badge-wrapper">
+                            <span class="gate-badge badge-init" id="gate-status-badge">미준비 (INIT)</span>
+                        </div>
+                        <p class="gate-desc" id="gate-status-desc">시놉시스 기획이 완료되면 1단계 스토리 기획서를 생성할 수 있습니다.</p>
+                        
+                        <!-- Dynamic POV Input (Visible only during SCRIPT_PENDING) -->
+                        <div class="form-group hidden" id="pov-input-wrapper">
+                            <label for="pov-input" style="color: var(--color-accent); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; margin-bottom: 6px;">
+                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> 촬영 시선 처리 가이드
+                            </label>
+                            <input type="text" id="pov-input" class="studio-input" placeholder="예: 탐정의 시선으로 은밀히 추적">
+                        </div>
+
+                        <button id="btn-gate-action" class="studio-btn btn-accent w-100">
+                            <i data-lucide="play-circle"></i> 1단계: 스토리 기획 수립
+                        </button>
+
+                        <!-- Stage Reset / Time Travel Controls -->
+                        <div class="stage-reset-wrapper" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 12px;">
+                            <label style="font-size: 0.75rem; color: #a1a1aa; display: block; margin-bottom: 6px;"><i data-lucide="history" style="width: 12px; height: 12px; vertical-align: middle;"></i> 기획 단계 강제 수정 및 되돌리기</label>
+                            <div style="display: flex; gap: 6px;">
+                                <select id="stage-reset-select" class="studio-select" style="padding: 6px 10px; font-size: 0.75rem; flex: 1; height: 32px; min-width: 0; background: #09090b; border-color: rgba(255,255,255,0.1);">
+                                    <option value="INIT">초기 기획 (INIT)</option>
+                                    <option value="STORY_PENDING">1단계: 스토리 기획 단계</option>
+                                    <option value="SCRIPT_PENDING">2단계: 대본 작성 단계</option>
+                                    <option value="BOARD_PENDING">3단계: 컷/사운드 설계 단계</option>
+                                </select>
+                                <button id="btn-stage-reset" class="studio-btn" style="padding: 6px 10px; font-size: 0.75rem; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; height: 32px; white-space: nowrap;">
+                                    <i data-lucide="undo-2" style="width: 12px; height: 12px;"></i> 되돌리기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Container -->
+                    <div class="build-progress-container hidden" id="progress-block">
+                        <div class="progress-header">
+                            <span id="active-agent-name">Story Agent 분석 중...</span>
+                            <span id="progress-percent-label">35%</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="progress-bar-fill" style="width: 35%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE CONSOLE TERMINAL -->
+                <div class="panel-section console-section">
+                    <h3 class="section-title"><i data-lucide="terminal"></i> 실시간 영화 프로덕션 로그</h3>
+                    <div class="terminal-body" id="terminal-logs">
+                        <div class="terminal-line system-msg">대기 중... 시놉시스를 작성하고 프로젝트를 기획하세요.</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT PANEL: ORCHESTRATION PIPELINE & ACTIVE BOARD -->
+            <main class="active-studio-board">
+                
+                <!-- PIPELINE PROCESS MAP -->
+                <div class="pipeline-map">
+                    <div class="pipeline-node active" id="node-story">
+                        <div class="node-icon"><i data-lucide="feather"></i></div>
+                        <div class="node-label">Story Agent</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                    <div class="pipeline-arrow"><i data-lucide="chevron-right"></i></div>
+                    <div class="pipeline-node" id="node-scene">
+                        <div class="node-icon"><i data-lucide="layers"></i></div>
+                        <div class="node-label">Scene Agent</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                    <div class="pipeline-arrow"><i data-lucide="chevron-right"></i></div>
+                    <div class="pipeline-node" id="node-director">
+                        <div class="node-icon"><i data-lucide="clapperboard"></i></div>
+                        <div class="node-label">Director Agent</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                    <div class="pipeline-arrow"><i data-lucide="chevron-right"></i></div>
+                    <div class="pipeline-node" id="node-cinematography">
+                        <div class="node-icon"><i data-lucide="aperture"></i></div>
+                        <div class="node-label">Cinematography</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                    <div class="pipeline-arrow"><i data-lucide="chevron-right"></i></div>
+                    <div class="pipeline-node" id="node-sound">
+                        <div class="node-icon"><i data-lucide="music"></i></div>
+                        <div class="node-label">Sound Agent</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                    <div class="pipeline-arrow"><i data-lucide="chevron-right"></i></div>
+                    <div class="pipeline-node" id="node-compile">
+                        <div class="node-icon"><i data-lucide="film"></i></div>
+                        <div class="node-label">FFmpeg Mix</div>
+                        <div class="node-status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- BOARD CONTROLLING TABS -->
+                <div class="board-tabs">
+                    <button class="tab-btn active" data-tab="tab-player"><i data-lucide="monitor-play"></i> 상영 극장 (Theater)</button>
+                    <button class="tab-btn" data-tab="tab-story"><i data-lucide="book-open"></i> 캐릭터 기획안 (Story)</button>
+                    <button class="tab-btn" data-tab="tab-script"><i data-lucide="scroll"></i> 대본 극본 (Screenplay)</button>
+                    <button class="tab-btn" data-tab="tab-storyboard"><i data-lucide="image"></i> 스토리보드 (Storyboard)</button>
+                    <button class="tab-btn" data-tab="tab-sound"><i data-lucide="sliders"></i> 오디오 믹서 (Sound Mix)</button>
+                </div>
+
+                <!-- TAB PANELS -->
+                <div class="tab-content-container">
+                    
+                    <!-- TAB 1: THEATER THEME PLAYER -->
+                    <div class="tab-pane active" id="tab-player">
+                        <div class="theater-stage">
+                            <div class="theater-screen-wrapper">
+                                <div class="ambient-glow" id="screen-glow"></div>
+                                <video id="theater-video-player" controls preload="auto" class="cinema-video-element">
+                                    <source src="" type="video/mp4">
+                                    비디오 재생이 지원되지 않는 브라우저입니다.
+                                </video>
+                                <div class="player-overlay-card" id="player-idle-card">
+                                    <i data-lucide="play-circle" class="play-huge-icon"></i>
+                                    <h3>준비된 비디오가 없습니다</h3>
+                                    <p>좌측 제어판에서 에피소드를 컴파일하여 대작 비디오를 렌더링하세요!</p>
+                                </div>
+                            </div>
+                            <div class="theater-controls-desc">
+                                <div class="theater-movie-info">
+                                    <h2 id="theater-movie-title">작품 선택 대기 중</h2>
+                                    <span id="theater-episode-badge" class="badge">EPISODE 0</span>
+                                </div>
+                                <a id="btn-download-video" class="studio-btn btn-primary" download style="display: none;">
+                                    <i data-lucide="download"></i> MP4 비디오 다운로드
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: STORY CHARACTERS -->
+                    <div class="tab-pane" id="tab-story">
+                        <div class="story-outline-grid">
+                            <div class="story-main-info">
+                                <h2 id="story-movie-title" class="story-title-banner">스토리보드 기획 정보</h2>
+                                <p id="story-movie-synopsis" class="story-synopsis-text">시놉시스가 로드되지 않았습니다.</p>
+                                
+                                <div class="twists-box">
+                                    <h4><i data-lucide="refresh-cw"></i> 극적 반전 설계 (Twists)</h4>
+                                    <ul id="story-twists-list">
+                                        <li>프로젝트를 생성하면 반전 설계가 오픈됩니다.</li>
+                                    </ul>
+                                </div>
+                                <div class="foreshadow-box">
+                                    <h4><i data-lucide="map-pin"></i> 떡밥 복선 지도 (Foreshadowing)</h4>
+                                    <ul id="story-foreshadow-list">
+                                        <li>프로젝트를 생성하면 복선 지도가 오픈됩니다.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="character-dossier">
+                                <h3 class="sub-section-title"><i data-lucide="users"></i> 등장인물 프로필 카드</h3>
+                                <div class="characters-grid" id="characters-grid">
+                                    <!-- Dynamic Cards -->
+                                    <div class="no-data-msg">등록된 인물이 없습니다. 먼저 프로젝트를 생성하세요.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: HOLLYWOOD SCREENPLAY -->
+                    <div class="tab-pane" id="tab-script">
+                        <div class="screenplay-paper">
+                            <div class="screenplay-header">
+                                <span class="film-title-center" id="script-movie-title">TITLE</span>
+                                <span class="episode-center" id="script-episode-title">EPISODE SCENARIO</span>
+                            </div>
+                            <hr class="screenplay-divider">
+                            <div class="screenplay-body" id="screenplay-body">
+                                <div class="no-data-msg">에피소드를 한번 이상 빌드하거나 에셋을 호출해 주세요.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: VISUAL STORYBOARD GRID -->
+                    <div class="tab-pane" id="tab-storyboard">
+                        <div class="storyboard-gallery" id="storyboard-gallery">
+                            <div class="no-data-msg">생성된 스토리보드가 존재하지 않습니다.</div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: AUDIO SOUND MIXER -->
+                    <div class="tab-pane" id="tab-sound">
+                        <div class="sound-mixer-layout">
+                            <div class="mixer-intro">
+                                <h3><i data-lucide="sliders"></i> 다채널 시네마틱 오디오 믹싱 구조</h3>
+                                <p>Sound Agent가 정밀 설계한 샷별 BGM 상태와 효과음(SFX) 타이밍 지도입니다.</p>
+                            </div>
+                            
+                            <div class="mixer-timeline-container" id="mixer-timeline-grid">
+                                <!-- Dynamic Mixer channels -->
+                                <div class="no-data-msg">오디오 믹싱 정보가 생성되지 않았습니다.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

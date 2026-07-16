@@ -1,0 +1,39 @@
+# AI Director Production Studio - Development & Design Guidelines
+
+This file governs the architectural rules, model selections, design aesthetics, and interactive state machine UX for the AI Director Studio. All agents, developers, and code modifiers MUST adhere strictly to these principles.
+
+---
+
+## 🚀 1. Core AI Model Stack (2026 Production Stable)
+Always use these designated models inside `config.py` and `agents.py`. Never hardcode outdated legacy model names.
+- **Main LLM (Text & Plot)**: `gemini-3.5-flash` (The prompt-champion for scriptwriting & story boarding)
+- **Storyboard Frame Generator**: `gemini-3.1-flash-image` (Also known as Nano Banana 2)
+- **Cinematic Video Generator**: `veo-3.1-generate-001` (Google's cutting edge Veo 3.1 model)
+- **Voiceover Narration (TTS)**: `gemini-3.1-flash-tts-preview` (Google Flash TTS Engine)
+
+---
+
+## 🎨 2. Storyboard Visual & Video Guidelines
+- **ABSOLUTELY NO GEOMETRIC DRAWINGS**:
+  - Never draw messy camera crosshairs, perspective grid lines, sonar sweeps, concentric circles, or abstract boxes on top of storyboard frames. They ruin the immersion.
+  - If AI generation fails and falls back to PIL drawing, keep the fallback frame clean, elegant, and minimalistic.
+- **Widescreen Cinematic Overlays**:
+  - All compiled storyboard frames (both real AI and fallback) must have black cinematic letterboxes on top (80px) and bottom (100px).
+  - Center-align high-contrast, premium yellow subtitles (`#facc15` or `#yellow`) inside the bottom letterbox.
+  - Overlay a neat, semi-transparent high-tech camera telemetry HUD badge showing `[CUT: SHOT_ID | SCENE: SCENE_NO]` on the top-left corner.
+
+---
+
+## 🔄 3. Production Stage Control & Retry UX
+- **NEVER DISABLE COMPILE TRIGGER UPON COMPLETION**:
+  - When the final video compilation succeeds and transitions to `VIDEO_COMPLETED`, **the main action button MUST remain enabled.**
+  - Change the label to `<i data-lucide="rotate-ccw"></i> 4단계: 시네마 재컴파일 및 렌더링 (Retry)` so that users can instantly trigger a recompile if they want to try another AI art style or re-render the scene.
+- **Live Terminal Logging**:
+  - Stream all FFmpeg subprocess progress, Pillow generation, and sound mixing logs directly to the virtual terminal HUD to keep the user informed.
+
+---
+
+## 🚫 4. Zero Dummy Data Rule
+- **No Masking Failures with Fake Content**:
+  - If a Google Cloud API call, environment dependency, or FFmpeg subprocess fails, **do not supply mock/dummy success data.**
+  - Always raise a clean Python `RuntimeError` or bubble up the exception so that it displays as a clear red warning line on the user's dashboard terminal, indicating the precise error.
