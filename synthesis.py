@@ -269,20 +269,28 @@ def create_storyboard_image(filepath: str, shot_id: str, scene_no: int, angle: s
             if mood:
                 enriched_prompt += f", {mood} mood lighting and high-contrast color grading"
                 
-            response = client.models.generate_images(
+            response = client.models.generate_content(
                 model=GEMINI_IMAGE_MODEL,
-                prompt=enriched_prompt,
-                config=types.GenerateImagesConfig(
-                    number_of_images=1,
-                    output_mime_type="image/png",
-                    aspect_ratio="16:9"
+                contents=enriched_prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["IMAGE"],
+                    image_config=types.ImageConfig(
+                        aspect_ratio="16:9"
+                    )
                 )
             )
             
-            if response.generated_images:
-                # Save the real AI generated picture
-                response.generated_images[0].image.save(filepath)
-                print(f"[SYSTEM]: Successfully generated AI cinematic frame for {shot_id}!")
+            saved = False
+            for part in response.candidates[0].content.parts:
+                if part.inline_data:
+                    image_bytes = part.inline_data.data
+                    with open(filepath, "wb") as f:
+                        f.write(image_bytes)
+                    print(f"[SYSTEM]: Successfully generated AI cinematic frame for {shot_id}!")
+                    saved = True
+                    break
+            
+            if saved:
                 
                 # Draw movie subtitles & HUD overlay on top of the real AI image
                 try:
